@@ -51,8 +51,8 @@ class SchedulerApp(QWidget):
         self.setLayout(root)
 
         form_group = QGroupBox("Task Parameters")
-        form = QFormLayout()
-        form_group.setLayout(form)
+        self.form = QFormLayout()
+        form_group.setLayout(self.form)
         root.addWidget(form_group)
 
         self.task_type = QComboBox()
@@ -82,14 +82,14 @@ class SchedulerApp(QWidget):
         self.period.setRange(1, 1_000_000)
         self.period.setValue(30)
 
-        form.addRow("Task type", self.task_type)
-        form.addRow("Text", self.task_text)
-        form.addRow("Assignee", self.assignee)
-        form.addRow("Priority (1-10)", self.priority)
-        form.addRow("Duration (sec)", self.duration)
-        form.addRow("Deadline (sec)", self.deadline)
-        form.addRow("Start (sec)", self.start_time)
-        form.addRow("Period (sec)", self.period)
+        self.form.addRow("Task type", self.task_type)
+        self.form.addRow("Text", self.task_text)
+        self.form.addRow("Assignee", self.assignee)
+        self.form.addRow("Priority (1-10)", self.priority)
+        self.form.addRow("Duration (sec)", self.duration)
+        self.form.addRow("Deadline (sec)", self.deadline)
+        self.form.addRow("Start (sec)", self.start_time)
+        self.form.addRow("Period (sec)", self.period)
 
         self.buttons_layout = QHBoxLayout()
         root.addLayout(self.buttons_layout)
@@ -127,9 +127,15 @@ class SchedulerApp(QWidget):
 
     def update_fields(self) -> None:
         task_type = self.task_type.currentText()
-        self.deadline.setVisible(task_type == "DeadlineTask")
-        self.start_time.setVisible(task_type == "PeriodicTask")
-        self.period.setVisible(task_type == "PeriodicTask")
+        self._set_form_row_visible(self.deadline, task_type == "DeadlineTask")
+        self._set_form_row_visible(self.start_time, task_type == "PeriodicTask")
+        self._set_form_row_visible(self.period, task_type == "PeriodicTask")
+
+    def _set_form_row_visible(self, field_widget, visible: bool) -> None:
+        field_widget.setVisible(visible)
+        label = self.form.labelForField(field_widget)
+        if label is not None:
+            label.setVisible(visible)
 
     def _validate_common_inputs(self) -> tuple[str, str, int, int]:
         text = self.task_text.text().strip()
